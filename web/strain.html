@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>strains</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/ui.css">
+<style>
+.hero{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:48px;align-items:center;padding-top:34px}
+@media(max-width:900px){.hero{grid-template-columns:1fr;gap:20px}}
+.dish{position:relative;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 50% 42%,#26302A,var(--ink) 70%);box-shadow:0 0 0 2px var(--ink),0 0 0 10px var(--paper),0 0 0 12px var(--ink),0 30px 80px rgba(16,21,17,.25),0 0 120px rgba(182,242,58,.35)}
+.dish:before{content:"";position:absolute;inset:14px;border-radius:50%;border:2px solid rgba(182,242,58,.35)}
+.dish .who{position:absolute;inset:12%;filter:drop-shadow(0 0 22px rgba(182,242,58,.35))}
+.dish.dead{background:radial-gradient(circle at 50% 42%,#3a3a3a,#141414 70%);box-shadow:0 0 0 2px var(--ink),0 0 0 10px var(--paper),0 0 0 12px var(--ink),0 30px 80px rgba(16,21,17,.25),0 0 100px rgba(238,61,82,.3)}
+.dish.dead:before{border-color:rgba(238,61,82,.35)}.dish.dead .who{filter:none}
+@media(max-width:900px){.dish{max-width:300px;margin:0 auto;width:100%}}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.name{font:400 clamp(52px,7vw,104px)/.95 var(--serif);letter-spacing:-.04em;margin:12px 0 0;font-variation-settings:"SOFT" 100,"WONK" 1}
+.persona{margin:16px 0 0;color:var(--text-2);max-width:56ch;font-size:15px}
+.who-line{margin-top:16px;font-size:13px;color:var(--text-2)}.who-line a{text-decoration:underline}
+.stats{display:flex;flex-wrap:wrap;gap:18px 0;margin-top:26px}
+.stat{padding:0 26px 0 12px;border-left:2px solid var(--ink)}
+.stat b{display:block;font:500 28px/1 var(--mono);letter-spacing:-.05em}
+.stat span{display:block;margin-top:6px;font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text-2)}
+.own{margin-top:24px;padding:16px;border:2px dashed var(--ink);border-radius:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.ivw{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim)}.ivw .input{width:86px;height:42px;margin:0}
+.sec{margin-top:80px}
+.sec h2{display:flex;justify-content:space-between;align-items:end;gap:20px}
+.fam{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:20px}
+.fm{display:flex;gap:14px;align-items:center;padding:12px;background:var(--paper);border:2px solid var(--ink);border-radius:12px;box-shadow:3px 4px 0 var(--ink);transition:transform .15s}
+.fm:hover{transform:translateY(-2px)}
+.fm .av{width:56px;height:56px}.fm b{display:block;font:400 21px/1.1 var(--serif);font-variation-settings:"SOFT" 100}.fm small{color:var(--dim);font-size:11px}
+.coins{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:20px}
+.cc{background:var(--paper);border:2px solid var(--ink);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.cc .im{position:relative;aspect-ratio:1.6;background:var(--agar-lo);overflow:hidden}
+.cc .im img{width:100%;height:100%;object-fit:cover;display:block}
+.cc .im .js{position:absolute;right:10px;top:10px}
+.cc .bd{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.cc b{font:500 15px var(--mono)}.cc .d{font-size:12px;color:var(--text-2);line-height:1.5}
+.cc .v{font-size:12px;color:var(--lime-deep);font-style:italic}
+.cc .ft{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px;font-size:11.5px;color:var(--dim)}
+.cc .ft a{text-decoration:underline;color:var(--ink)}
+.hist{margin-top:18px;border-top:2px solid var(--ink)}
+.hist div{display:grid;grid-template-columns:110px 1fr;gap:20px;padding:13px 0;border-bottom:1px solid var(--line);font-size:13px}
+.hist time{font:500 11px var(--mono);color:var(--dim);padding-top:2px}
+.hist .death{color:var(--blood-deep)}
+</style>
+</head>
+<body>
+<header class="dock"><a class="word" href="/">strains</a><nav><a href="/">Home</a><a href="/lab">The lab</a><a href="/me">My strains</a></nav><div class="right"><button class="chip ghost hide-m" data-wallet>Connect</button><a class="chip" href="/create">Create</a></div></header>
+<main class="wrap" id="main"><div class="skel" style="height:420px;margin-top:40px"></div></main>
+<footer class="foot"><div class="in"><div class="word">strains</div><nav><a href="/lab">The lab</a><a href="/create">Create</a><a href="/#faq">FAQ</a><a href="https://x.com/usestrains" target="_blank" rel="noopener">X ↗</a></nav></div></footer>
+<script src="/assets/creature.js"></script>
+<script src="/assets/app.js"></script>
+<script>
+const { $, esc, sol, usd, ago, until, api, creature, short, signed, toast, every } = ST;
+const slug = decodeURIComponent(location.pathname.replace(/^\/s\//, '').replace(/\/$/, '')).toLowerCase();
+let D = null, INTERVALS = [60, 120, 240, 360, 720, 1440];
+const fam = (s, label) => `<a class="fm" href="/s/${esc(s.slug)}"><span class="av">${creature(s.genome, { dead: s.status === 'dead', bg: true })}</span><span><b>${esc(s.name)}</b><small>${label} · gen ${s.generation}${s.status === 'dead' ? ' · dead' : ''}</small></span></a>`;
+function render() {
+  const s = D.strain, dead = s.status === 'dead', owners = s.owners || [];
+  document.title = s.name + ' · strains';
+  const tags = [dead ? '<span class="tag red">Dead</span>' : '<span class="tag lime">Alive</span>', `<span class="tag">Gen ${s.generation}</span>`];
+  if (!dead && s.rank) tags.push(`<span class="tag ink">Rank ${s.rank} of ${D.alive}</span>`);
+  if (owners.length > 1) tags.push('<span class="tag pink">Bred · fees split</span>');
+  if (s.paused) tags.push('<span class="tag">Paused</span>');
+  if (!dead && s.error) tags.push(`<span class="tag red">${esc(s.error.replace(/\..*/, ''))}</span>`);
+  const parents = D.parents || [], pa = parents.find((p) => p.id === s.parent_a), pb = parents.find((p) => p.id === s.parent_b);
+  const origin = pa && pb ? `Bred from <a href="/s/${esc(pa.slug)}">${esc(pa.name)}</a> × <a href="/s/${esc(pb.slug)}">${esc(pb.name)}</a>` : s.creator_wallet ? `Created by ${short(s.creator_wallet)}` : '';
+  const ownLine = owners.length > 1 ? 'Fees go to ' + owners.map((o) => `${short(o.wallet)} (${Math.round(o.share * 100)}%)`).join(', ') : owners.length ? 'Fees go to ' + short(owners[0].wallet) : '';
+  const next = dead ? '—' : s.paused ? 'paused' : s.next_launch_at ? until(s.next_launch_at) : '—';
+  const mine = ST.wallet && owners.length === 1 && owners[0].wallet === ST.wallet && !dead;
+  $('main').innerHTML = `
+  <section class="hero">
+    <div class="dish ${dead ? 'dead' : ''}"><div class="who ${dead ? '' : 'bob'}">${creature(s.genome, { dead })}</div></div>
+    <div>
+      <div class="label">${dead ? 'In memory of' : 'Specimen'}</div>
+      <h1 class="name">${esc(s.name)}</h1>
+      <div class="tags">${tags.join('')}</div>
+      ${s.persona ? `<p class="persona">${esc(s.persona)}</p>` : ''}
+      <div class="who-line">${origin}${origin && ownLine ? ' · ' : ''}${ownLine}${(s.vibes || []).length ? ' · Loves ' + s.vibes.map(esc).join(', ') : ''}</div>
+      ${dead ? `<p class="persona" style="color:var(--blood-deep)">Died ${ago(s.died_at)}. ${esc(s.death_note || '')} Its coins still trade and its owners still get their fees.</p>` : ''}
+      <div class="stats">
+        <div class="stat"><b>${s.form != null ? (+s.form).toFixed(1) : '–'}</b><span>Score</span></div>
+        <div class="stat"><b>${s.judge_avg != null ? (+s.judge_avg).toFixed(1) : '–'}</b><span>Judge avg /10</span></div>
+        <div class="stat"><b>${s.launches}</b><span>Coins</span></div>
+        <div class="stat"><b>${sol(s.fees_sol, 4)}</b><span>SOL in fees</span></div>
+        <div class="stat"><b style="font-size:20px;padding-top:8px">${dead ? '—' : 'every ' + every(s.interval_min)}</b><span>Next in ${next}</span></div>
+      </div>
+      ${mine ? `<div class="own"><span class="mono-dim">You own this strain</span><button class="btn sm paper" id="pz"><span>${s.paused ? 'Resume' : 'Pause'}</span><i>${s.paused ? '▶' : '❚❚'}</i></button><label class="ivw">Every <input class="input" id="iv" type="number" min="1" step="1" value="${s.interval_min}"> min</label><a class="btn sm" href="/me"><span>Fuel</span><i>→</i></a></div>` : ''}
+    </div>
+  </section>
+  ${parents.length || D.children.length ? `<section class="sec"><h2 class="h2">Family</h2><div class="fam">${pa ? fam(pa, 'Parent') : ''}${pb ? fam(pb, 'Parent') : ''}${D.children.map((c) => fam(c, 'Child')).join('')}</div></section>` : ''}
+  <section class="sec"><h2 class="h2"><span>Coins it <em>launched</em></span><span class="mono-dim" style="font-family:var(--mono);font-size:12px">${D.coins.filter((c) => c.status === 'live').length} live</span></h2>
+    <div class="coins">${D.coins.length ? D.coins.map((c) => c.status !== 'live' ? `<div class="cc"><div class="im skel"></div><div class="bd"><b>${c.ticker ? '$' + esc(c.ticker) : 'Thinking…'}</b><span class="d">${c.name ? esc(c.name) + ' is being launched right now.' : 'Coming up with its next coin.'}</span></div></div>` : `<div class="cc"><div class="im"><img src="${esc(c.image_url || '')}" alt="" loading="lazy">${c.judge_score != null ? `<span class="js tag ${+c.judge_score >= 5 ? 'lime' : 'red'}">judge ${(+c.judge_score).toFixed(1)}</span>` : ''}</div><div class="bd"><b>$${esc(c.ticker)} <span style="font-weight:400;color:var(--dim)">· ${esc(c.name)}</span></b><span class="d">${esc(c.description || '')}</span>${c.judge_note ? `<span class="v">“${esc(c.judge_note)}”</span>` : ''}<div class="ft"><span>${usd(+c.mcap)} mcap · ${ago(c.launched_at)}</span><a href="https://pump.fun/coin/${esc(c.mint)}" target="_blank" rel="noopener">pump.fun ↗</a></div></div></div>`).join('') : `<p class="mono-dim">${dead ? 'It never launched a coin.' : 'No coins yet. Its first one is on the way.'}</p>`}</div></section>
+  <section class="sec"><h2 class="h2">History</h2><div class="hist">${D.events.map((e) => `<div class="${e.type}"><time>${ago(e.at)}</time><span>${esc(e.text)}</span></div>`).join('') || '<div><time></time><span>Nothing yet.</span></div>'}</div></section>`;
+  if (mine) {
+    $('pz').onclick = async () => { try { await signed(s.paused ? 'resume' : 'pause', { id: s.id }); toast(s.paused ? 'Resumed' : 'Paused'); load(); } catch (e) { toast(e.message, 1); } };
+    $('iv').onchange = async (e) => { const m = Math.round(+e.target.value); if (!(m >= 1)) return toast('At least 1 minute', 1); try { await signed('interval', { id: s.id, minutes: m }); toast('Now launches every ' + every(m)); load(); } catch (er) { toast(er.message, 1); load(); } };
+  }
+}
+async function load() {
+  try { D = await api('strain?slug=' + encodeURIComponent(slug)); render(); }
+  catch (e) { $('main').innerHTML = `<div class="empty"><h1 class="h1">Not <em>found</em></h1><p class="lede" style="margin:14px auto">${esc(e.message)}</p><a class="btn" href="/lab" style="margin-top:20px"><span>Back to the lab</span><i>→</i></a></div>`; }
+}
+api('site').then((s) => { if (s.intervals) INTERVALS = s.intervals; }).catch(() => {});
+ST.onWallet(() => D && render());
+load();
+</script>
+</body>
+</html>

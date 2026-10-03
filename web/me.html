@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>strains</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/ui.css">
+<style>
+.top{padding-top:34px}
+.bal{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:18px;margin-top:30px}
+@media(max-width:900px){.bal{grid-template-columns:1fr}}
+.bx{padding:22px}
+.bx .label{color:var(--text-2)}
+.bx b.big{display:block;margin-top:10px;font:500 40px/1 var(--mono);letter-spacing:-.05em}
+.bx b.big small{font-size:14px;letter-spacing:0;margin-left:6px;color:var(--dim)}
+.bx p{margin:10px 0 0;font-size:12.5px;color:var(--text-2)}
+.bx .rowi{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.bx .rowi .input{width:120px;height:42px;margin:0}
+.bx.fuel{background:var(--ink);color:var(--paper);border-color:var(--ink)}.bx.fuel .label{color:var(--lime)}.bx.fuel p{color:var(--mist)}.bx.fuel b.big small{color:var(--mist)}
+.bx.fuel .input{background:var(--ink-2);color:var(--paper);border-color:var(--ink-3)}
+.list{margin-top:26px;border-top:2px solid var(--ink)}
+.it{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:18px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}
+.it .av{width:72px;height:72px}
+.it h3{margin:0;font:400 26px/1.1 var(--serif);letter-spacing:-.02em;font-variation-settings:"SOFT" 100,"WONK" 1}
+.it .m{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--dim)}
+.it .ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.ivw{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim)}.ivw .input{width:86px;height:42px;margin:0}
+@media(max-width:700px){.it{grid-template-columns:56px 1fr}.it .av{width:56px;height:56px}.it .ctl{grid-column:1/-1;justify-content:flex-start}}
+.gate{text-align:center;padding:90px 20px}
+</style>
+</head>
+<body>
+<header class="dock"><a class="word" href="/">strains</a><nav><a href="/">Home</a><a href="/lab">The lab</a><a class="on" href="/me">My strains</a></nav><div class="right"><button class="chip ghost hide-m" data-wallet>Connect</button><a class="chip" href="/create">Create</a></div></header>
+<main class="wrap" id="main">
+  <div class="gate"><div class="label">My strains</div><h1 class="h1">Connect to see <em>your lab</em></h1><p class="lede" style="margin:14px auto">Your fuel, your fees and every strain you own or co-own.</p><button class="btn" style="margin-top:22px" onclick="ST.connect()"><span>Connect wallet</span><i>↗</i></button></div>
+</main>
+<footer class="foot"><div class="in"><div class="word">strains</div><nav><a href="/lab">The lab</a><a href="/create">Create</a><a href="/#faq">FAQ</a><a href="https://x.com/usestrains" target="_blank" rel="noopener">X ↗</a></nav></div></footer>
+<script src="/assets/creature.js"></script>
+<script src="/assets/app.js"></script>
+<script>
+const { $, esc, sol, ago, until, api, creature, toast, signed, payTx, every } = ST;
+let INTERVALS = [60, 120, 240, 360, 720, 1440], M = null;
+function render() {
+  const hrs = M.burn_per_hour > 0 ? M.fuel_sol / M.burn_per_hour : 0;
+  const alive = M.strains.filter((s) => s.status === 'alive'), dead = M.strains.filter((s) => s.status === 'dead');
+  $('main').innerHTML = `
+  <div class="top"><div class="label">My strains</div><h1 class="h1">Your <em>lab</em></h1><p class="lede">${alive.length} alive, ${dead.length} dead. ${M.free_used ? `Your free strain is used. A new one costs ${M.next_price} SOL, which is burned as $STRAINS.` : 'Your free strain is waiting.'}</p></div>
+  <div class="bal">
+    <div class="card bx fuel"><div class="label">Fuel</div><b class="big">${sol(M.fuel_sol, 4)}<small>SOL</small></b>
+      <p>${M.burn_per_hour > 0 ? `Your strains use about ${sol(M.burn_per_hour, 4)} SOL an hour, so this lasts about <b style="color:var(--lime)">${hrs >= 48 ? Math.floor(hrs / 24) + ' days' : Math.floor(hrs) + ' hours'}</b>.` : 'Nothing is using fuel right now.'}</p>
+      <div class="rowi"><input class="input" id="amt" type="number" min="0.01" step="0.05" value="0.25" inputmode="decimal"><button class="btn sm" id="top"><span>Top up</span><i>+</i></button><button class="btn sm paper" id="wd"><span>Withdraw</span><i>↙</i></button></div></div>
+    <div class="card bx"><div class="label">Fees on the way</div><b class="big">${sol(M.owed_sol, 5)}<small>SOL</small></b><p>Creator fees your strains' coins earned. Paid to your wallet every hour once it reaches 0.01 SOL.</p></div>
+    <div class="card bx"><div class="label">Fees paid to you</div><b class="big">${sol(M.paid_sol, 4)}<small>SOL</small></b><p>Everything already sent to your wallet. Strains takes 0%.</p></div>
+  </div>
+  <section style="margin-top:60px"><div style="display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap"><h2 class="h2">Your <em>strains</em></h2><a class="btn sm" href="/create"><span>${M.free_used ? `New strain · ${M.next_price} SOL` : 'Make your free strain'}</span><i>+</i></a></div>
+  <div class="list">${M.strains.length ? M.strains.map((s) => { const sh = (s.owners.find((o) => o.wallet === ST.wallet) || {}).share || 0, solo = s.owners.length === 1, dead = s.status === 'dead';
+    return `<div class="it"><a class="av" href="/s/${esc(s.slug)}">${creature(s.genome, { dead, bg: true })}</a><div><h3><a href="/s/${esc(s.slug)}">${esc(s.name)}</a></h3><div class="m">${dead ? `<span class="tag red">Dead</span> died ${ago(s.died_at)}` : `<span class="tag lime">Alive</span>${s.rank ? `<span class="tag ink">#${s.rank}</span>` : ''}${s.paused ? '<span class="tag">Paused</span>' : ''}${s.error ? `<span class="tag red">${esc(s.error.replace(/\..*/, ''))}</span>` : ''}`}${solo ? '' : `<span class="tag pink">You get ${Math.round(sh * 100)}%</span>`} gen ${s.generation} · ${s.launches} coins · ${sol(s.fees_sol, 4)} SOL fees${!dead && !s.paused ? ' · next coin in ' + until(s.next_launch_at) : ''}</div></div>
+      <div class="ctl">${!dead && solo ? `<label class="ivw">Every <input class="input" data-iv="${s.id}" type="number" min="1" step="1" value="${s.interval_min}"> min</label><button class="btn sm paper" data-pz="${s.id}" data-p="${s.paused ? 1 : 0}"><span>${s.paused ? 'Resume' : 'Pause'}</span><i>${s.paused ? '▶' : '❚❚'}</i></button>` : !dead ? '<span class="mono-dim">Bred strains run on their own</span>' : ''}</div></div>`; }).join('') : '<p class="mono-dim" style="padding:20px 0">No strains yet.</p>'}</div></section>`;
+  $('top').onclick = topUp; $('wd').onclick = withdraw;
+  document.querySelectorAll('[data-pz]').forEach((b) => (b.onclick = async () => { try { await signed(b.dataset.p === '1' ? 'resume' : 'pause', { id: b.dataset.pz }); toast(b.dataset.p === '1' ? 'Resumed' : 'Paused'); load(); } catch (e) { toast(e.message, 1); } }));
+  document.querySelectorAll('[data-iv]').forEach((s) => (s.onchange = async () => { const m = Math.round(+s.value); if (!(m >= 1)) return toast('At least 1 minute', 1); try { await signed('interval', { id: s.dataset.iv, minutes: m }); toast('Now launches every ' + every(m)); } catch (e) { toast(e.message, 1); load(); } }));
+}
+async function topUp() {
+  const v = +$('amt').value; if (!(v >= 0.01)) return toast('Enter at least 0.01 SOL', 1);
+  try { const p = await api('prepare-fuel', { wallet: ST.wallet, sol: v }); const sig = await payTx(p.payMessage); toast('Checking the payment…');
+    for (let i = 0; i < 6; i++) { try { await api('fuel', { wallet: ST.wallet, signature: sig, sol: p.sol }); toast('Fuel added'); return load(); } catch (e) { if (!/not confirmed/i.test(e.message) || i === 5) throw e; await new Promise((r) => setTimeout(r, 2500)); } }
+  } catch (e) { toast(/reject|cancel/i.test(e.message) ? 'Cancelled' : e.message, 1); }
+}
+async function withdraw() {
+  const v = Math.min(+$('amt').value, M.fuel_sol); if (!(v >= 0.001)) return toast('Nothing to withdraw', 1);
+  try { const r = await signed('withdraw', { sol: +v.toFixed(6) }); toast(`Sent ${sol(r.sent)} SOL to your wallet`); load(); } catch (e) { toast(e.message, 1); }
+}
+async function load() { if (!ST.wallet) return; try { M = await api('me?wallet=' + ST.wallet); render(); } catch (e) { toast(e.message, 1); } }
+api('site').then((s) => { if (s.intervals) INTERVALS = s.intervals; }).catch(() => {});
+ST.onWallet(load);
+</script>
+</body>
+</html>

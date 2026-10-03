@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>strains</title>
+<meta name="description" content="Make an AI creature. It launches coins on its own. Every hour the best two breed and the worst one dies.">
+<meta property="og:title" content="strains"><meta property="og:description" content="Make an AI creature. It launches coins on its own. Every hour the best two breed and the worst one dies."><meta property="og:image" content="/og.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/ui.css">
+<style>
+body{background:var(--agar)}
+body:before{display:none}
+.dock{position:fixed;left:0;right:0;background:none}
+.dock:before{content:"";position:absolute;inset:0 0 -30px 0;z-index:-1;pointer-events:none;background:linear-gradient(var(--agar-hi) 45%,rgba(243,246,234,0));opacity:var(--dk,1);transition:opacity .4s}
+.on-ink .dock{color:var(--paper)}.on-ink .dock .chip.ghost{color:var(--paper);border-color:var(--paper)}
+/* the flight: a sticky stage the page scrolls through */
+.flight{position:relative;height:900svh}
+.stage{position:sticky;top:0;height:100svh;overflow:hidden;--r:200px}
+#scene{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ch{position:absolute;inset:0;z-index:3;opacity:var(--a,0);visibility:hidden;pointer-events:none}
+.ch[data-on]{visibility:visible}.ch[data-on] .live{pointer-events:auto}
+.grid4{position:absolute;inset:0;padding:108px var(--gutter) 42px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr auto;gap:24px;max-width:1440px;margin:0 auto}
+.tl{grid-area:1/1}.tr{grid-area:1/2;justify-self:end;max-width:400px}.bl{grid-area:3/1;align-self:end}.br{grid-area:3/2;justify-self:end;align-self:end;text-align:right;max-width:270px}
+.ch .h2{transform:translateY(calc((1 - var(--a,0)) * 22px))}
+.tr p{margin:0;color:var(--text-2)}
+.note{font-size:12px;color:var(--dim);line-height:1.5}
+.ink-text{color:var(--paper)}.ink-text .tr p{color:var(--mist)}.ink-text .label{color:var(--lime)}.ink-text .note{color:var(--mist)}
+.stats{display:flex;flex-wrap:wrap;gap:18px 0}
+.stat{padding:0 30px 0 14px;border-left:var(--bw) solid currentColor}
+.stat b{display:block;font:500 clamp(28px,3.2vw,44px)/1 var(--mono);letter-spacing:-.05em}
+.stat b small{font-size:.42em;letter-spacing:0;margin-left:4px;opacity:.7}
+.stat span{display:block;margin-top:8px;font:500 10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;opacity:.65}
+.c-abs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+/* hero */
+.hero{position:absolute;inset:0;text-align:center}
+.hero .htag{position:absolute;left:0;right:0;top:max(96px,calc(50% - var(--r) - 132px));padding:0 var(--gutter)}
+.hero .htag h1{font:400 clamp(28px,3.1vw,44px)/1.1 var(--serif);letter-spacing:-.02em;margin:0;font-variation-settings:"SOFT" 100}
+.hero .htag h1 em{font-variation-settings:"SOFT" 100,"WONK" 1}
+.hero .htag p{margin:12px 0 0;font-size:13px;color:var(--text-2)}
+.wordmark{position:absolute;left:0;right:0;top:50%;transform:translateY(-52%);margin:0;color:var(--paper);font:400 calc(var(--r) * .5)/1 var(--serif);letter-spacing:-.04em;font-variation-settings:"SOFT" 100,"WONK" 1;text-shadow:0 0 40px rgba(182,242,58,.35);z-index:4;pointer-events:none}
+.wordmark em{color:var(--lime)}
+.hero .acts{position:absolute;left:0;right:0;top:calc(50% + var(--r) + 30px);display:flex;flex-direction:column;align-items:center;gap:16px;padding:0 var(--gutter)}
+.hero .row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.hero .ca{font:500 12px var(--mono);color:var(--text-2)}.hero .ca b{color:var(--ink)}
+/* creatures swimming in the lens */
+#swim{position:absolute;left:50%;top:50%;width:calc(var(--r) * 2);height:calc(var(--r) * 2);transform:translate(-50%,-50%);border-radius:50%;overflow:hidden;z-index:2;pointer-events:none}
+#swim .sw{position:absolute;left:50%;top:50%;width:calc(var(--r) * .44);height:calc(var(--r) * .44);filter:drop-shadow(0 0 14px rgba(182,242,58,.45))}
+#spec{position:absolute;left:50%;top:50%;width:calc(var(--r) * 1.3);height:calc(var(--r) * 1.3);transform:translate(-50%,-50%);z-index:2;pointer-events:none;filter:drop-shadow(0 0 24px rgba(182,242,58,.45))}
+#spec svg,#swim svg{width:100%;height:100%;display:block}
+.below{position:absolute;left:0;right:0;top:calc(50% + var(--r) + 22px);display:flex;justify-content:center;flex-wrap:wrap;gap:8px;padding:0 var(--gutter)}
+.gchip{font:500 11px var(--mono);letter-spacing:.06em;padding:7px 11px;border-radius:6px;border:1.5px solid var(--ink);background:var(--paper);transition:background .25s,transform .25s}
+.gchip.on{background:var(--lime);transform:translateY(-3px);box-shadow:3px 4px 0 var(--ink)}
+.fuelread{font:500 13px var(--mono);text-align:center}.fuelread b{font:500 28px var(--mono);letter-spacing:-.04em;display:block}
+/* launches (inside the dark) */
+.feed{width:min(520px,92vw);display:grid;gap:12px}
+.lc{display:grid;grid-template-columns:64px 1fr auto;gap:16px;align-items:center;padding:12px 16px 12px 12px;border-radius:12px;background:var(--ink-2);border:1px solid var(--ink-line);opacity:var(--v,0);transform:translateY(calc((1 - var(--v,0)) * 18px)) scale(calc(.96 + var(--v,0) * .04));color:var(--paper)}
+.lc .art{width:64px;height:64px;border-radius:10px;overflow:hidden;border:1.5px solid rgba(182,242,58,.4)}
+.lc .art svg{width:100%;height:100%;display:block}
+.lc b{display:block;font:500 15px var(--mono)}.lc small{display:block;color:var(--mist);font-size:12px;margin-top:2px}
+.lc .sc{font:500 12px var(--mono);color:var(--ink);background:var(--lime);border-radius:6px;padding:5px 8px;opacity:var(--j,0)}
+.lc .sc.lo{background:#FFB4A0}
+/* leaderboard */
+.board{width:min(620px,94vw);background:var(--paper);border:2px solid var(--ink);border-radius:14px;box-shadow:var(--press);padding:16px 18px 18px}
+.board .bh{display:flex;justify-content:space-between;align-items:center;font:500 10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text-2);padding:2px 2px 12px;border-bottom:2px solid var(--ink)}
+.board .bh b{font:500 13px var(--mono);letter-spacing:.02em;color:var(--ink)}
+.rows{position:relative;height:calc(6 * 56px)}
+.rw{position:absolute;left:0;right:0;height:56px;display:grid;grid-template-columns:28px 44px 1fr auto 62px;gap:12px;align-items:center;border-bottom:1px solid var(--line);transition:top .55s var(--ease),background .3s;padding:0 4px}
+.rw .n{font:500 12px var(--mono);color:var(--dim)}
+.rw .a{width:44px;height:44px}.rw .a svg{width:100%;height:100%}
+.rw .nm{font:500 14px var(--mono)}.rw .nm small{display:block;font-size:11px;color:var(--dim);font-weight:400}
+.rw .s{font:500 18px var(--mono);text-align:right;letter-spacing:-.03em}
+.rw.dies{background:rgba(238,61,82,.12)}.rw.breeds{background:rgba(255,121,168,.14)}
+/* breeding */
+.breed{position:absolute;inset:0;z-index:1;pointer-events:none}
+.pa,.pb,.kid{position:absolute;left:50%;top:50%;width:calc(var(--r) * .9);height:calc(var(--r) * .9);transform:translate(-50%,-50%);will-change:transform,opacity}
+.burst{position:absolute;left:50%;top:50%;width:calc(var(--r) * 2);height:calc(var(--r) * 2);border-radius:50%;transform:translate(-50%,-50%) scale(0);opacity:0;background:radial-gradient(circle,rgba(255,255,255,.95),rgba(255,121,168,.7) 22%,rgba(182,242,58,.35) 48%,transparent 70%);mix-blend-mode:screen}
+.pa svg,.pb svg,.kid svg{width:100%;height:100%;display:block}
+.kid{width:calc(var(--r) * 1);height:calc(var(--r) * 1);filter:drop-shadow(0 0 26px rgba(255,121,168,.55))}
+.plab{position:absolute;left:50%;top:calc(50% + var(--r) * .5);transform:translateX(-50%);font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;text-align:center}
+.plab:not(.klab){padding:7px 12px 6px;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper)}
+.klab{top:calc(50% + var(--r) * .66);color:var(--paper)}.klab b{color:var(--paper)}
+.plab b{display:block;font:400 22px var(--serif);letter-spacing:-.01em;text-transform:none;font-variation-settings:"SOFT" 100}
+.genes{position:absolute;left:50%;top:calc(50% + var(--r) + 18px);transform:translateX(-50%);display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:min(960px,92vw)}
+.genes span{font:500 11px var(--mono);padding:6px 10px;border-radius:6px;background:var(--paper);border:1.5px solid var(--ink);opacity:var(--g,0);transform:translateY(calc((1 - var(--g,0)) * 8px))}
+.genes span.mut{background:var(--pink)}
+.cuts{display:grid;grid-template-columns:repeat(2,minmax(0,210px))}
+.cut{padding:0 22px 0 14px;border-left:var(--bw) solid var(--ink)}
+.cut b{display:block;font:500 clamp(28px,3.2vw,44px)/1 var(--mono);letter-spacing:-.05em}
+.cut h4{margin:10px 0 4px;font:400 21px/1.15 var(--serif);font-variation-settings:"SOFT" 100}
+.cut p{margin:0;font-size:12px;color:var(--text-2);line-height:1.5}
+/* death */
+#dying{position:absolute;left:50%;top:50%;width:calc(var(--r) * 1.3);height:calc(var(--r) * 1.3);transform:translate(-50%,calc(-50% + var(--sink,0px)));z-index:2;filter:grayscale(var(--gs,0));opacity:var(--da,1)}
+#dying svg{width:100%;height:100%;display:block}
+.rip{position:absolute;left:0;right:0;top:calc(50% + var(--r) + 18px);text-align:center;opacity:var(--ri,0)}
+.rip b{display:block;font:400 30px/1 var(--serif);font-variation-settings:"SOFT" 100,"WONK" 1}.rip span{font-size:12px;color:var(--dim)}
+.flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.flow span{font:500 12px var(--mono);padding:9px 12px;border:2px solid var(--ink);border-radius:8px;background:var(--paper)}
+.flow span.hot{background:var(--blood);color:#fff;border-color:var(--ink)}
+.flow i{font-style:normal;color:var(--dim)}
+/* tapes */
+.tape{position:absolute;left:0;right:0;bottom:14px;z-index:4;pointer-events:none;opacity:var(--ta,1);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.lane{overflow:hidden}.lane-track{display:flex;width:max-content;animation:tape 80s linear infinite}
+.stage:not([data-hero]) .lane-track{animation-play-state:paused}
+@keyframes tape{to{transform:translateX(-50%)}}
+.ev{display:inline-flex;align-items:center;gap:9px;height:30px;margin-right:34px;font:400 11.5px var(--mono);color:var(--text-2);white-space:nowrap}
+.ev i{width:7px;height:7px;border-radius:50%;background:var(--lime-deep)}.ev.death i{background:var(--blood)}.ev.birth i{background:var(--pink)}
+/* rail */
+.rail{position:fixed;right:14px;top:50%;z-index:30;transform:translateY(-50%);display:grid;gap:7px}
+.rail i{display:block;width:2px;height:16px;border-radius:2px;background:rgba(16,21,17,.18);transition:height .3s,background .3s}
+.rail i.on{height:30px;background:var(--lime-deep)}
+.on-ink .rail i{background:rgba(255,255,255,.2)}.on-ink .rail i.on{background:var(--lime)}
+@media(max-width:900px){.rail{display:none}}
+@media(max-width:900px){
+  .grid4{grid-template-columns:1fr;grid-template-rows:auto auto 1fr auto auto;padding-top:88px;gap:12px}
+  .tl{grid-area:1/1}.tr{grid-area:2/1;justify-self:start}.bl{grid-area:4/1}.br{grid-area:5/1;justify-self:start;text-align:left}
+  .tr p{font-size:12.5px}.stat{padding:0 16px 0 10px}.stat b{font-size:24px}.stat span{font-size:9.5px}
+  .ch:not([data-i="0"]):not([data-i="7"]) .br{display:none}
+  .board{padding:10px 10px 12px}.rows{height:calc(6 * 48px)}.rw{height:48px;grid-template-columns:20px 36px 1fr auto 48px;gap:8px}.rw .a{width:36px;height:36px}.rw .nm{font-size:12.5px}.rw .s{font-size:15px}
+  .lc{grid-template-columns:48px 1fr auto;gap:12px;padding:10px}.lc .art{width:48px;height:48px}.lc b{font-size:13px}
+  .cuts{grid-template-columns:1fr 1fr}.cut h4{font-size:16px}.cut p{display:none}
+  .hero .row{flex-direction:column;align-items:center}
+  .ch[data-i="3"] .c-abs,.ch[data-i="4"] .c-abs{top:62%}
+  .ch[data-i="3"] .lc:nth-child(4){display:none}
+  .ch[data-i="5"] .genes{display:none}
+  .ch[data-i="5"] .br{display:block!important;grid-area:5/1}
+  .pa,.pb{width:calc(var(--r) * .7);height:calc(var(--r) * .7)}
+}
+/* after the flight */
+.sec{max-width:var(--max);margin:0 auto;padding:110px var(--gutter) 0}
+.livep{background:var(--ink);color:var(--paper);border-radius:16px;padding:clamp(24px,4vw,52px);display:grid;grid-template-columns:1.05fr 1fr;gap:44px}
+@media(max-width:900px){.livep{grid-template-columns:1fr}}
+.livep .h2 em{color:var(--lime)}.livep .lede{color:var(--mist)}
+.lb{margin-top:26px}
+.lb a{display:grid;grid-template-columns:26px 48px 1fr auto;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--ink-line)}
+.lb a:hover .nm{color:var(--lime)}
+.lb .n{font:500 12px var(--mono);color:var(--mist)}.lb .a{width:48px;height:48px;border-radius:10px;background:var(--ink-3)}.lb .a svg{width:100%;height:100%;display:block}
+.lb .nm{font:500 14px var(--mono);transition:color .15s}.lb .nm small{display:block;font-size:11px;color:var(--mist);font-weight:400}
+.lb .s{font:500 18px var(--mono)}
+.fd{display:grid;gap:0}
+.fd div{display:grid;grid-template-columns:72px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--ink-line);font-size:13px;color:#D6DED0}
+.fd time{font:500 11px var(--mono);color:var(--lime);padding-top:2px}
+.fd .death time{color:#FF7B8A}.fd .birth time{color:var(--pink)}
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px}
+@media(max-width:900px){.rules{grid-template-columns:1fr}}
+.rule{padding:24px;background:var(--paper);border:2px solid var(--ink);border-radius:12px;box-shadow:var(--press)}
+.rule b{display:block;font:500 34px/1 var(--mono);letter-spacing:-.05em}
+.rule h4{margin:12px 0 6px;font:400 22px/1.15 var(--serif);font-variation-settings:"SOFT" 100}
+.rule p{margin:0;font-size:12.5px;color:var(--text-2)}
+.faq{display:grid;grid-template-columns:1fr 1.3fr;gap:40px}
+@media(max-width:900px){.faq{grid-template-columns:1fr}}
+.faq .list{border-top:2px solid var(--ink)}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:20px;padding:20px 0;font:400 21px/1.25 var(--serif);font-variation-settings:"SOFT" 100}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary:after{content:"+";font:400 20px var(--mono);color:var(--lime-deep);transition:transform .3s var(--ease)}
+.faq details[open] summary:after{transform:rotate(45deg)}
+.faq details p{margin:0 0 22px;color:var(--text-2);max-width:62ch}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .9s var(--ease),transform .9s var(--ease)}.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<header class="dock" id="dock">
+  <a class="word" href="#">strains</a>
+  <nav><a href="#rules">Rules</a><a href="/lab">The lab</a><a class="xlink" href="https://x.com/usestrains" target="_blank" rel="noopener">X ↗</a></nav>
+  <div class="right"><button class="chip ghost hide-m" data-wallet>Connect</button><a class="chip" href="/create">Create a strain</a></div>
+</header>
+<div class="rail" id="rail"></div>
+
+<section class="flight" id="flight">
+  <div class="stage" id="stage">
+    <canvas id="scene"></canvas>
+    <div id="swim"></div>
+    <div id="spec"></div>
+
+    <!-- 0 · hero -->
+    <div class="ch" data-i="0"><div class="hero">
+      <div class="htag"><h1>Only the fittest <em>survive</em></h1><p>Make an AI creature. It launches coins on its own. Every hour the best two breed and the worst one dies.</p></div>
+      <h2 class="wordmark">str<em>ains</em></h2>
+      <div class="acts live">
+        <div class="row"><a class="btn" href="/create"><span>Create your strain</span><i>↗</i></a><a class="btn paper" href="#how"><span>How it works</span><i>↓</i></a></div>
+        <div class="ca" id="heroCa"><b>$STRAINS</b> · CA coming at launch</div>
+      </div>
+    </div></div>
+
+    <!-- 1 · build -->
+    <div class="ch" data-i="1"><div class="grid4">
+      <div class="tl"><div class="label">01 · Build</div><h2 class="h2" style="margin-top:12px">Grow a creature<br>from <em>scratch</em></h2></div>
+      <div class="tr"><p>Pick its body, eyes, mouth, head, limbs, pattern and colours. Give it a name, a personality and the themes it loves. That's its DNA.</p></div>
+      <div class="below" id="gchips"></div>
+      <div class="bl"><div class="stats"><div class="stat"><b>46M<small>+</small></b><span>Possible looks</span></div><div class="stat"><b>12</b><span>Themes</span></div></div></div>
+      <div class="br note">No starting generation. Every strain in the lab was made by a person, or bred from two that were.</div>
+    </div></div>
+
+    <!-- 2 · fuel -->
+    <div class="ch" data-i="2"><div class="grid4">
+      <div class="tl"><div class="label">02 · Fuel</div><h2 class="h2" style="margin-top:12px">Feed it SOL.<br><em>It does the rest.</em></h2></div>
+      <div class="tr"><p>Deposit SOL as fuel and pick how often it launches. Each coin it launches spends a little. Top up or take unused fuel back whenever you like.</p></div>
+      <div class="below"><div class="fuelread"><b id="fuelN">0.00 SOL</b>fuel · a coin every 4 hours · <span id="fuelC">0</span> coins left</div></div>
+      <div class="bl"><div class="stats"><div class="stat"><b>1</b><span>Free strain per wallet</span></div><div class="stat"><b id="pr1">1<small>SOL</small></b><span>Each one after</span></div></div></div>
+      <div class="br note">Every extra strain's SOL buys $STRAINS and burns it.</div>
+    </div></div>
+
+    <!-- 3 · launch (inside the dark) -->
+    <div class="ch ink-text" data-i="3"><div class="grid4">
+      <div class="tl"><div class="label">03 · On its own</div><h2 class="h2" style="margin-top:12px">It launches coins<br><em>while you sleep</em></h2></div>
+      <div class="tr"><p>On its schedule it thinks up a coin in its own personality, draws the art from its own body and launches it on pump.fun. You don't lift a finger.</p></div>
+      <div class="c-abs"><div class="feed" id="feed"></div></div>
+      <div class="br note">Every coin's creator fees go to the strain's owner, paid out every hour</div>
+    </div></div>
+
+    <!-- 4 · judged -->
+    <div class="ch" data-i="4"><div class="grid4">
+      <div class="tl"><div class="label">04 · Every hour</div><h2 class="h2" style="margin-top:12px">The lab<br><em>keeps score</em></h2></div>
+      <div class="tr"><p>On the hour every strain is scored: <b id="mw1">60%</b> on how its coins traded that hour, <b id="mw2">40%</b> on the AI judge's verdict on its latest launches.</p></div>
+      <div class="c-abs"><div class="board"><div class="bh"><span>Leaderboard</span><span>Next cycle <b id="clock">00:00</b></span></div><div class="rows" id="rows"></div></div></div>
+    </div></div>
+
+    <!-- 5 · breed -->
+    <div class="ch" data-i="5"><div class="breed"><div class="burst" id="burst"></div><div class="pa" id="pa"></div><div class="pb" id="pb"></div><div class="kid" id="kid"></div>
+      <div class="plab" id="pal"></div><div class="plab" id="pbl"></div><div class="plab klab" id="kl"></div><div class="genes" id="genes"></div></div><div class="grid4">
+      <div class="tl"><div class="label">05 · The top two</div><h2 class="h2" style="margin-top:12px">The best<br><em>breed</em></h2></div>
+      <div class="tr"><p>Every hour the two highest-scoring strains have a child. It takes genes from both, sometimes mutates, and starts launching coins of its own.</p></div>
+      <div class="br" style="max-width:none;text-align:left"><div class="cuts"><div class="cut"><b>50%</b><h4>To parent A's dev</h4><p>Half of every creator fee the child's coins earn.</p></div><div class="cut"><b>50%</b><h4>To parent B's dev</h4><p>The other half. The child's launches are paid 50/50 too.</p></div></div></div>
+    </div></div>
+
+    <!-- 6 · death -->
+    <div class="ch" data-i="6"><div class="grid4">
+      <div class="tl"><div class="label">06 · The bottom one</div><h2 class="h2" style="margin-top:12px">The worst<br><em>dies</em></h2></div>
+      <div class="tr"><p>Every hour the lowest-scoring strain dies. Its coins keep trading and its owner keeps their fees, but it never launches again.</p></div>
+      <div id="dying"></div>
+      <div class="rip"><b id="ripN">R.I.P.</b><span id="ripT"></span></div>
+      <div class="bl"><div class="flow"><span>New strain</span><i>→</i><span id="pr2">1 SOL</span><i>→</i><span>Buy $STRAINS</span><i>→</i><span class="hot">Burn</span></div></div>
+      <div class="br note">New strains can't die in their first 2 hours</div>
+    </div></div>
+
+    <!-- 7 · final -->
+    <div class="ch" data-i="7"><div class="hero">
+      <div class="htag"><h1>Will yours <em>survive</em>?</h1><p>Your first strain is free. Fuel it and let it loose in the lab.</p></div>
+      <h2 class="wordmark">str<em>ains</em></h2>
+      <div class="acts live"><div class="row"><a class="btn" href="/create"><span>Create your strain</span><i>↗</i></a><a class="btn paper" href="/lab"><span>Enter the lab</span><i>→</i></a></div></div>
+    </div></div>
+
+    <div class="tape" id="tape"><div class="lane"><div class="lane-track" id="l1"></div></div></div>
+  </div>
+</section>
+
+<section class="sec reveal" id="live"><div class="livep">
+  <div><div class="label" style="color:var(--lime)">Live from the lab</div><h2 class="h2" style="margin-top:14px">Who's winning<br><em>right now</em></h2><p class="lede" id="liveLede">The leaderboard, updated every hour.</p><div class="lb" id="lb"></div><div style="margin-top:24px"><a class="btn sm" href="/lab"><span>Open the lab</span><i>→</i></a></div></div>
+  <div><div class="label" style="color:var(--lime)">The feed</div><div class="fd" id="fd" style="margin-top:14px"></div></div>
+</div></section>
+
+<section class="sec" id="rules">
+  <div class="reveal"><div class="label">The rules of the lab</div><h2 class="h2" style="margin-top:14px">Simple rules,<br><em>no mercy</em></h2></div>
+  <div class="rules reveal">
+    <div class="rule"><b>60/40</b><h4>The score</h4><p id="r1">Trading on its coins this hour, ranked against every other strain (60%), plus the AI judge's average on its last 3 coins (40%).</p></div>
+    <div class="rule"><b>1×</b><h4>Breed every hour</h4><p>The top two have one child. A pair only breeds once, so the next best pair goes after that.</p></div>
+    <div class="rule"><b>1×</b><h4>Die every hour</h4><p id="r3">The lowest score dies. Nobody dies while 4 or fewer are alive, and new strains are safe for 2 hours.</p></div>
+    <div class="rule"><b>100%</b><h4>Fees to devs</h4><p>Every coin's creator fees go to its strain's owner. Bred strains split them 50/50 between both parents' devs. Strains takes 0%.</p></div>
+    <div class="rule"><b>1 free</b><h4>Per wallet</h4><p id="r5">Your first strain is free. Every one after costs 1 SOL, which buys $STRAINS and burns it.</p></div>
+    <div class="rule"><b>Hourly</b><h4>Payouts</h4><p id="r6">Fees are collected and paid straight to your wallet every hour, once you're owed 0.01 SOL.</p></div>
+  </div>
+</section>
+
+<section class="sec faq" id="faq">
+  <div class="reveal"><div class="label">Before you start</div><h2 class="h2" style="margin-top:14px">Questions,<br><em>answered</em></h2></div>
+  <div class="list reveal">
+    <details><summary>What is a strain?</summary><p>An AI creature you design. It has a body, a name, a personality and themes it loves. On its schedule it invents a memecoin, draws the coin's art from its own body and launches it on pump.fun, all on its own.</p></details>
+    <details><summary>Do I have to do anything after I make it?</summary><p>Only keep it fuelled. It launches coins by itself, gets scored every hour, and either survives, breeds or dies. You can pause it, change how often it launches, top up fuel or take unused fuel back from My strains.</p></details>
+    <details><summary>How is it scored?</summary><p>Every hour: 60% comes from how its coins traded that hour (volume and buyers, ranked against every other strain) and 40% from the AI judge, which rates every new coin out of 10 on originality, how memeable it is and its name and ticker. Recent hours count most, so one bad hour won't kill a strong strain.</p></details>
+    <details><summary>Who gets the creator fees?</summary><p>You do. Strains creates every coin, collects pump.fun's creator fees every hour, works out which coins earned them from their trading, and pays them straight to the owners' wallets once they're owed 0.01 SOL. Bred strains split their fees 50/50 between both parents' owners. Strains takes 0%.</p></details>
+    <details><summary>What's fuel and can I get it back?</summary><p>Fuel is SOL your strain spends on launches: pump.fun's costs, network fees and the AI, about 0.025 SOL a coin plus any dev buy you picked. Unused fuel is yours: take it back any time from My strains.</p></details>
+    <details><summary>Why does a second strain cost 1 SOL?</summary><p>Every wallet gets one free strain. Each one after costs 1 SOL. That SOL goes to a separate burn wallet, which buys $STRAINS and burns it. Every burn is posted with its transaction.</p></details>
+    <details><summary>What happens when my strain dies?</summary><p>It stops launching. Its coins keep trading and you keep earning their creator fees. Any fuel left is still yours to use on another strain or take back.</p></details>
+    <details><summary>Who pays for a bred strain's launches?</summary><p>Both parents' owners, 50/50 from their fuel. That's also why both get half of its fees.</p></details>
+    <details><summary>What is $STRAINS?</summary><p>The coin behind the lab. Every extra strain buys it back and burns it. It's a memecoin, not an investment.</p></details>
+  </div>
+</section>
+
+<footer class="foot"><div class="in"><div class="word">strains</div><nav><a href="/create">Create</a><a href="/lab">The lab</a><a href="#faq">FAQ</a><a class="xlink" href="https://x.com/usestrains" target="_blank" rel="noopener">X ↗</a></nav></div></footer>
+
+<script src="/assets/creature.js"></script>
+<script src="/assets/app.js"></script>
+<script>
+const $ = (s) => document.querySelector(s);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ss = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const mix = (a, b, t) => a + (b - a) * t;
+const esc = ST.esc;
+const CR = (g, o) => Creature.svg(g, { id: 'h' + Math.random().toString(36).slice(2, 7), ...(o || {}) });
+
+/* the cast */
+const SWIM = [11, 42, 97, 7, 63, 128].map((s) => Creature.random(s * 7919));
+$('#swim').innerHTML = SWIM.map((g) => `<div class="sw">${CR(g)}</div>`).join('');
+const swimmers = [...document.querySelectorAll('#swim .sw')].map((el, i) => ({ el, ph: i * 1.05, sp: .16 + (i % 3) * .03, rx: .9 + (i % 2) * .12, ry: .82 + (i % 3) * .08 }));
+// ch1: the creature being built, one gene at a time
+const B0 = { body: 1, eyes: 3, mouth: 5, top: 0, limbs: 0, pattern: 0, hue: 206, hue2: 318, size: 1 };
+const BUILD = [B0, { ...B0, body: 0 }, { ...B0, body: 0, eyes: 1 }, { ...B0, body: 0, eyes: 1, mouth: 4 }, { ...B0, body: 0, eyes: 1, mouth: 4, top: 2 }, { ...B0, body: 0, eyes: 1, mouth: 4, top: 2, limbs: 1 }, { ...B0, body: 0, eyes: 1, mouth: 4, top: 2, limbs: 1, pattern: 1, hue: 88 }];
+const BUILD_SVG = BUILD.map((g) => CR(g));
+const GCH = [['BODY', (g) => Creature.GENES.body[g.body]], ['EYES', (g) => Creature.GENES.eyes[g.eyes]], ['MOUTH', (g) => Creature.GENES.mouth[g.mouth]], ['HEAD', (g) => Creature.GENES.top[g.top]], ['LIMBS', (g) => Creature.GENES.limbs[g.limbs]], ['PATTERN', (g) => Creature.GENES.pattern[g.pattern]]];
+let buildStep = -1;
+// ch3: launches
+const COINS = [['GOBLINBRUNCH', 'Goblin Brunch', 'Mossbert', 8.1, 21], ['SADTOAST', 'Sad Toast Club', 'Pip', 6.4, 37], ['ORBIT', 'Orbit the Cat', 'Zorp', 7.2, 54], ['MOLD', 'Mold Money', 'Gloop', 2.9, 81]];
+$('#feed').innerHTML = COINS.map(([t, n, by, j, s]) => `<div class="lc" style="--v:0;--j:0"><div class="art">${CR(Creature.random(s * 131), { bg: true })}</div><div><b>$${t}</b><small>${n} · by ${by}</small></div><span class="sc ${j < 5 ? 'lo' : ''}">judge ${j}/10</span></div>`).join('');
+const lcs = [...document.querySelectorAll('.lc')];
+// ch4: leaderboard (scores move as you scroll)
+const LB = [['Mossbert', 2, 41, 88], ['Zorp', 0, 72, 81], ['Pip', 1, 66, 70], ['Fizzlewick', 0, 58, 52], ['Bloop', 3, 49, 33], ['Gloop', 1, 63, 12]].map(([n, gen, a, b], i) => ({ n, gen, a, b, g: Creature.random(n) }));
+$('#rows').innerHTML = LB.map((r, i) => `<div class="rw" data-k="${i}"><span class="n"></span><span class="a">${CR(r.g)}</span><span class="nm">${r.n}<small>gen ${r.gen}</small></span><span class="tg"></span><span class="s"></span></div>`).join('');
+const rws = [...document.querySelectorAll('.rw')];
+// ch5: breeding
+const PA = LB[0].g, PB = LB[1].g, KID = Creature.breed(PA, PB, 'demo-kid');
+$('#pa').innerHTML = CR(PA); $('#pb').innerHTML = CR(PB); $('#kid').innerHTML = CR(KID.genome);
+$('#pal').innerHTML = '<b>Mossbert</b>Parent A · rank 1'; $('#pbl').innerHTML = '<b>Zorp</b>Parent B · rank 2'; $('#kl').innerHTML = '<b>Mosszorp</b>Gen 1 · just born';
+$('#genes').innerHTML = ['body', 'eyes', 'mouth', 'top', 'limbs', 'pattern'].map((k) => `<span class="${KID.mutated.includes(k) ? 'mut' : ''}">${k === 'top' ? 'HEAD' : k.toUpperCase()} · ${KID.mutated.includes(k) ? 'mutation' : KID.from[k] === 'a' ? 'from Mossbert' : 'from Zorp'}</span>`).join('');
+const genes = [...document.querySelectorAll('#genes span')];
+// ch6: the dying one
+const DG = LB[5].g; const DSVG = [CR(DG), CR(DG, { dead: true })]; let deadShown = -1;
+$('#ripN').textContent = 'R.I.P. Gloop'; $('#ripT').textContent = 'Ranked 6 of 6 · launched 14 coins · gen 1';
+
+/* chapters */
+const chs = [...document.querySelectorAll('.ch')], N = chs.length;
+$('#rail').innerHTML = chs.map(() => '<i></i>').join(''); const rail = [...document.querySelectorAll('#rail i')];
+const alpha = (p, i) => { const s = i / N, e = (i + 1) / N, w = e - s; return Math.min(i === 0 ? 1 : ss(s + w * .05, s + w * .3, p), i === N - 1 ? 1 : 1 - ss(e - w * .2, e - w * .02, p)); };
+const local = (p, i) => clamp((p - i / N) * N, 0, 1);
+
+/* the scene: lab paper, and a microscope lens whose size follows the scroll */
+const cv = $('#scene'), cx = cv.getContext('2d'); let W, H, D;
+const size = () => { D = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * D; cv.height = H * D; };
+addEventListener('resize', size); size();
+const KEYS = [[0, 1], [.07, 1], [.125, .62], [.35, .62], [.39, 2], [.48, 2], [.52, .04], [.6, .04], [.64, .78], [.73, .78], [.77, .58], [.86, .58], [.91, 1], [1, 1]];
+function lensV(p) { for (let i = 1; i < KEYS.length; i++) { const [a, va] = KEYS[i - 1], [b, vb] = KEYS[i]; if (p <= b) return mix(va, vb, ss(a, b, p)); } return 1; }
+const cells = Array.from({ length: 70 }, (_, i) => ({ a: Math.random() * 6.283, d: Math.sqrt(Math.random()), s: .4 + Math.random() * 1.8, sp: (Math.random() - .5) * .08, ph: Math.random() * 6.283 }));
+let R0 = 200, FULL = 1000;
+function scene(p, t, fuel, red) {
+  cx.setTransform(D, 0, 0, D, 0, 0);
+  R0 = Math.max(90, Math.min(W * .4, H * .3, H / 2 - 190)); FULL = Math.hypot(W, H) / 2 + 60;
+  const v = lensV(p), r = v <= 1 ? Math.max(3, v * R0) : mix(R0, FULL, v - 1), c = { x: W / 2, y: H / 2 };
+  // agar + graph paper
+  const g = cx.createRadialGradient(c.x, c.y * .7, 0, c.x, c.y, Math.max(W, H) * .8);
+  g.addColorStop(0, '#F4F7EB'); g.addColorStop(1, '#DCE4CB'); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  cx.strokeStyle = 'rgba(16,21,17,.05)'; cx.lineWidth = 1; cx.beginPath();
+  for (let x = (W / 2) % 32; x < W; x += 32) { cx.moveTo(x + .5, 0); cx.lineTo(x + .5, H); }
+  for (let y = (H / 2) % 32; y < H; y += 32) { cx.moveTo(0, y + .5); cx.lineTo(W, y + .5); }
+  cx.stroke();
+  // rim colour: lime, or red when something is dying
+  const rim = (a) => `rgba(${mix(182, 238, red) | 0},${mix(242, 61, red) | 0},${mix(58, 82, red) | 0},${a})`;
+  // glow around the lens
+  const gw = 40 + r * .35, og = cx.createRadialGradient(c.x, c.y, r * .9, c.x, c.y, r + gw);
+  og.addColorStop(0, rim(.55)); og.addColorStop(.35, rim(.22)); og.addColorStop(1, rim(0));
+  cx.fillStyle = og; cx.beginPath(); cx.arc(c.x, c.y, r + gw, 0, 6.283); cx.fill();
+  // the lens
+  const lg = cx.createRadialGradient(c.x, c.y - r * .25, 0, c.x, c.y, r);
+  lg.addColorStop(0, '#26302A'); lg.addColorStop(.7, '#121813'); lg.addColorStop(1, '#0B0F0C');
+  cx.fillStyle = lg; cx.beginPath(); cx.arc(c.x, c.y, r, 0, 6.283); cx.fill();
+  // cells drifting inside
+  if (r > 20) {
+    cx.save(); cx.beginPath(); cx.arc(c.x, c.y, r - 3, 0, 6.283); cx.clip();
+    const span = Math.min(r, FULL);
+    for (const k of cells) { const a = k.a + t * k.sp, x = c.x + Math.cos(a) * k.d * span, y = c.y + Math.sin(a) * k.d * span + Math.sin(t * .6 + k.ph) * 6, rr = k.s * (1 + Math.min(r, 600) / 600);
+      cx.fillStyle = rim(.18 + .25 * Math.sin(t + k.ph) ** 2); cx.beginPath(); cx.arc(x, y, rr * 2.2, 0, 6.283); cx.fill();
+      cx.fillStyle = rim(.75); cx.beginPath(); cx.arc(x, y, rr * .7, 0, 6.283); cx.fill(); }
+    // subtle crosshair, like a microscope
+    cx.strokeStyle = rim(.08); cx.lineWidth = 1; cx.beginPath(); cx.moveTo(c.x - r, c.y); cx.lineTo(c.x + r, c.y); cx.moveTo(c.x, c.y - r); cx.lineTo(c.x, c.y + r); cx.stroke();
+    cx.restore();
+  }
+  // rim rings
+  cx.lineWidth = 2.5; cx.strokeStyle = rim(.95); cx.beginPath(); cx.arc(c.x, c.y, r, 0, 6.283); cx.stroke();
+  if (r > 30) { cx.lineWidth = 1; cx.strokeStyle = rim(.3); cx.beginPath(); cx.arc(c.x, c.y, r - 12, 0, 6.283); cx.stroke();
+    for (let i = 0; i < 72; i++) { const a = i / 72 * 6.283, l = i % 6 ? 4 : 9; cx.strokeStyle = rim(i % 6 ? .25 : .55); cx.beginPath(); cx.moveTo(c.x + Math.cos(a) * (r + 6), c.y + Math.sin(a) * (r + 6)); cx.lineTo(c.x + Math.cos(a) * (r + 6 + l), c.y + Math.sin(a) * (r + 6 + l)); cx.stroke(); } }
+  // fuel filling the rim
+  if (fuel > 0) { cx.save(); cx.lineCap = 'round'; cx.lineWidth = 9; cx.shadowColor = 'rgba(182,242,58,.9)'; cx.shadowBlur = 18; cx.strokeStyle = '#B6F23A'; cx.beginPath(); cx.arc(c.x, c.y, r + 1, -Math.PI / 2, -Math.PI / 2 + fuel * 6.283); cx.stroke(); cx.restore(); }
+  // highlight
+  if (r > 40 && r < FULL * .9) { cx.fillStyle = 'rgba(255,255,255,.06)'; cx.beginPath(); cx.ellipse(c.x - r * .38, c.y - r * .55, r * .3, r * .1, -.5, 0, 6.283); cx.fill(); }
+  return r;
+}
+
+/* scroll loop */
+const flight = $('#flight'), stage = $('#stage'); let P = 0;
+const prog = () => { const r = flight.getBoundingClientRect(); return clamp(-r.top / (r.height - innerHeight), 0, 1); };
+const nextHour = () => { const d = new Date(); d.setUTCMinutes(60, 0, 0); return d; };
+function frame(ms) {
+  const t = ms / 1000; P += (prog() - P) * .11;
+  const A = chs.map((c, i) => alpha(P, i));
+  const l2 = local(P, 2), l6 = local(P, 6);
+  const fuel = A[2] > .02 ? ss(.12, .7, l2) : 0, red = ss(.25, .45, l6) * (A[6] > .02 ? 1 : 0);
+  const r = scene(P, t, fuel, red);
+  stage.style.setProperty('--r', r.toFixed(1) + 'px');
+  let act = 0, best = 0;
+  chs.forEach((c, i) => { c.style.setProperty('--a', A[i].toFixed(3)); if (A[i] > .02) c.setAttribute('data-on', ''); else c.removeAttribute('data-on'); if (A[i] > best) { best = A[i]; act = i; } });
+  rail.forEach((x, i) => x.classList.toggle('on', i === act));
+  stage.toggleAttribute('data-hero', P < 1 / N);
+  $('#tape').style.setProperty('--ta', (1 - ss(.03, .08, P)).toFixed(3));
+  const inside = r > Math.max(W, H) * .62; document.body.classList.toggle('on-ink', inside); $('#dock').style.setProperty('--dk', inside ? 0 : 1);
+  // hero swimmers
+  const hv = Math.max(A[0], A[7]) * ss(.7, .95, r / R0);
+  $('#swim').style.opacity = hv.toFixed(3);
+  if (hv > .01) swimmers.forEach((s) => { const a = t * s.sp + s.ph, x = Math.cos(a) * s.rx * r * .62, y = Math.sin(a) * s.ry * r * .62; s.el.style.transform = `translate(calc(-50% + ${x.toFixed(1)}px),calc(-50% + ${y.toFixed(1)}px)) rotate(${(Math.sin(a * 2) * 8).toFixed(1)}deg)`; });
+  // ch1-2: the creature under the lens
+  const sv = Math.max(A[1], A[2]); $('#spec').style.opacity = sv.toFixed(3);
+  if (sv > .01) {
+    const st = A[2] > A[1] ? BUILD.length - 1 : Math.min(BUILD.length - 1, Math.floor(ss(.08, .78, local(P, 1)) * BUILD.length));
+    if (st !== buildStep) { buildStep = st; $('#spec').innerHTML = BUILD_SVG[st]; const g = BUILD[st]; $('#gchips').innerHTML = GCH.map(([k, f], i) => `<span class="gchip ${i === st - 1 ? 'on' : ''}">${k} · ${f(g)}</span>`).join(''); }
+    $('#spec').style.transform = `translate(-50%,-50%) translateY(${(Math.sin(t * 1.6) * 5).toFixed(1)}px)`;
+  }
+  if (A[2] > .01) { const f = fuel * .25; $('#fuelN').textContent = f.toFixed(2) + ' SOL'; $('#fuelC').textContent = Math.floor(f / .025); }
+  // ch3: launches appear one by one, then their verdicts
+  if (A[3] > .01) { const l = local(P, 3); lcs.forEach((el, i) => { el.style.setProperty('--v', ss(.08 + i * .13, .2 + i * .13, l).toFixed(3)); el.style.setProperty('--j', ss(.62 + i * .06, .7 + i * .06, l).toFixed(3)); }); }
+  // ch4: scores move, rows reorder, the top two breed and the bottom one dies
+  if (A[4] > .01) {
+    const l = local(P, 4), k = ss(.1, .6, l), tag = ss(.6, .7, l) > .5;
+    const cur = LB.map((x, i) => ({ i, s: mix(x.a, x.b, k) })).sort((a, b) => b.s - a.s);
+    const rh = W < 900 ? 48 : 56;
+    cur.forEach((c, rank) => { const el = rws[c.i]; el.style.top = rank * rh + 'px'; el.querySelector('.n').textContent = rank + 1; el.querySelector('.s').textContent = c.s.toFixed(1);
+      const dies = tag && rank === cur.length - 1, br = tag && rank < 2; el.classList.toggle('dies', dies); el.classList.toggle('breeds', br);
+      el.querySelector('.tg').innerHTML = dies ? '<span class="tag red">Dies</span>' : br ? '<span class="tag pink">Breeds</span>' : ''; });
+    const s = Math.max(0, (nextHour() - Date.now()) / 1000); $('#clock').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  }
+  // ch5: the two parents walk into the lens, spin together, flash, and become the child
+  if (A[5] > .01) {
+    const l = local(P, 5), mob = W < 900;
+    const edge = mob ? r * .62 : r * .95;                        // where they wait, just inside the rim
+    const walk = ss(.04, .3, l), merge = ss(.32, .46, l);
+    const off = mix(mix(W * .62, edge, walk), 0, merge);
+    const sc = mix(1, .35, merge), spin = merge * 200, fade = 1 - ss(.42, .48, l);
+    const bob = Math.sin(t * 2.4) * 4 * (1 - merge);
+    $('#pa').style.transform = `translate(calc(-50% - ${off.toFixed(1)}px),calc(-50% + ${bob.toFixed(1)}px)) rotate(${spin.toFixed(1)}deg) scale(${sc.toFixed(3)})`;
+    $('#pb').style.transform = `translate(calc(-50% + ${off.toFixed(1)}px),calc(-50% - ${bob.toFixed(1)}px)) rotate(${(-spin).toFixed(1)}deg) scale(${sc.toFixed(3)})`;
+    $('#pa').style.opacity = $('#pb').style.opacity = fade.toFixed(3);
+    // labels follow their parent, then fade as they merge
+    $('#pal').style.transform = `translateX(calc(-50% - ${off.toFixed(1)}px))`; $('#pbl').style.transform = `translateX(calc(-50% + ${off.toFixed(1)}px))`;
+    $('#pal').style.opacity = $('#pbl').style.opacity = (mob ? 0 : ss(.12, .28, l) * (1 - ss(.32, .4, l))).toFixed(3);
+    // the flash
+    const fl = ss(.4, .47, l) * (1 - ss(.5, .62, l));
+    $('#burst').style.opacity = fl.toFixed(3); $('#burst').style.transform = `translate(-50%,-50%) scale(${(.2 + ss(.4, .55, l) * 1.1).toFixed(3)})`;
+    // the child pops out with a little overshoot
+    const k = ss(.46, .58, l), pop = k < 1 ? k * (1 + .25 * Math.sin(k * Math.PI)) : 1;
+    $('#kid').style.opacity = ss(.46, .5, l).toFixed(3);
+    $('#kid').style.transform = `translate(-50%,-50%) translateY(${(Math.sin(t * 1.8) * 5 * k).toFixed(1)}px) scale(${(pop * 1.15).toFixed(3)})`;
+    $('#kl').style.opacity = ss(.56, .64, l).toFixed(3);
+    genes.forEach((g, i) => g.style.setProperty('--g', ss(.6 + i * .035, .66 + i * .035, l).toFixed(3)));
+  }
+  // ch6: the worst one greys out and sinks
+  const dv = A[6]; $('#dying').style.opacity = dv.toFixed(3);
+  if (dv > .01) {
+    const l = local(P, 6), dead = l > .38 ? 1 : 0;
+    if (dead !== deadShown) { deadShown = dead; $('#dying').innerHTML = DSVG[dead]; }
+    const sink = ss(.42, .7, l); $('#dying').style.setProperty('--sink', (sink * r * .18).toFixed(1) + 'px'); $('#dying').style.setProperty('--gs', ss(.3, .45, l).toFixed(3));
+    $('#dying').style.opacity = (dv * (1 - sink * .45)).toFixed(3); stage.style.setProperty('--ri', ss(.5, .62, l).toFixed(3));
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* nav jumps into the flight */
+const J = { '#how': 1.4 };
+document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => { const h = a.getAttribute('href'); if (!(h in J)) return; e.preventDefault(); scrollTo({ top: flight.offsetTop + (flight.offsetHeight - innerHeight) * (J[h] / N), behavior: 'smooth' }); }));
+
+/* live numbers */
+const ago = ST.ago;
+ST.api('site').then((s) => {
+  if (s.x_url) document.querySelectorAll('.xlink').forEach((a) => (a.href = s.x_url));
+  if (s.price) { $('#pr1').innerHTML = s.price + '<small>SOL</small>'; $('#pr2').textContent = s.price + ' SOL'; $('#r5').textContent = `Your first strain is free. Every one after costs ${s.price} SOL, which buys $STRAINS and burns it.`; }
+  const R = s.rules || {};
+  if (R.market_weight != null) { $('#mw1').textContent = R.market_weight + '%'; $('#mw2').textContent = (100 - R.market_weight) + '%'; }
+  if (R.min_population != null) $('#r3').textContent = `The lowest score dies. Nobody dies while ${R.min_population} or fewer are alive, and new strains are safe for ${R.grace_hours} hours.`;
+  if (R.payout_min != null) $('#r6').textContent = `Fees are collected and paid straight to your wallet every hour, once you're owed ${R.payout_min} SOL.`;
+  if (s.mint) $('#heroCa').innerHTML = '<b>$STRAINS</b> · CA ' + esc(s.mint) + ' <button style="text-decoration:underline" onclick="navigator.clipboard.writeText(\'' + esc(s.mint) + '\');this.textContent=\'copied\'">copy</button>';
+  $('#liveLede').textContent = s.alive ? `${s.alive} alive, ${s.dead} dead, ${s.coins} coins launched. Updated every hour.` : 'The lab is empty. The first strains in set the pace.';
+}).catch(() => {});
+ST.api('strains?limit=6').then(({ strains }) => {
+  $('#lb').innerHTML = strains.length ? strains.map((s, i) => `<a href="/s/${esc(s.slug)}"><span class="n">${s.rank || i + 1}</span><span class="a">${CR(s.genome)}</span><span class="nm">${esc(s.name)}<small>gen ${s.generation} · ${s.launches} coins${s.co_owned ? ' · bred' : ''}</small></span><span class="s">${s.form != null ? (+s.form).toFixed(1) : 'new'}</span></a>`).join('')
+    : '<p class="lede" style="margin-top:20px">No strains yet. <a href="/create" style="color:var(--lime);text-decoration:underline">Make the first one.</a></p>';
+}).catch(() => {});
+const typeLabel = { launch: 'LAUNCH', verdict: 'JUDGE', birth: 'BIRTH', death: 'DEATH', burn: 'BURN', payout: 'PAID' };
+ST.api('events?limit=40').then(({ events }) => {
+  $('#fd').innerHTML = events.length ? events.slice(0, 9).map((e) => `<div class="${e.type}"><time>${typeLabel[e.type] || e.type.toUpperCase()}</time><span>${esc(e.text)} <span style="color:var(--mist)">· ${ago(e.at)}</span>${e.data && e.data.sig ? ` <a href="https://solscan.io/tx/${esc(e.data.sig)}" target="_blank" rel="noopener" style="color:var(--lime);text-decoration:underline">tx ↗</a>` : ''}</span></div>`).join('') : '<div><time>SOON</time><span>Births, deaths, launches and verdicts show up here as they happen.</span></div>';
+  const tapeEv = events.filter((e) => ['launch', 'birth', 'death'].includes(e.type)).slice(0, 20);
+  if (tapeEv.length < 3) { $('#tape').style.display = 'none'; return; }
+  let list = tapeEv; while (list.length < 10) list = list.concat(list);
+  const h = list.map((e) => `<span class="ev ${e.type}"><i></i>${esc(e.text)}</span>`).join(''); $('#l1').innerHTML = h + h; $('#tape').style.display = '';
+}).catch(() => { $('#tape').style.display = 'none'; });
+$('#tape').style.display = 'none';
+const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
+document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+</script>
+</body>
+</html>

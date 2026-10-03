@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>strains</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/ui.css">
+<style>
+.top{padding-top:34px;display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap}
+.lay{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:44px;margin-top:34px;align-items:start}
+@media(max-width:980px){.lay{grid-template-columns:1fr;gap:26px}}
+/* the specimen: preview under the lens */
+.spec{position:sticky;top:86px}
+@media(max-width:980px){.spec{position:relative;top:0}}
+.dish{position:relative;aspect-ratio:1;max-width:520px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 50% 42%,#26302A,var(--ink) 70%);box-shadow:0 0 0 2px var(--ink),0 0 0 10px var(--paper),0 0 0 12px var(--ink),0 30px 80px rgba(16,21,17,.25),0 0 120px rgba(182,242,58,.35)}
+.dish:before{content:"";position:absolute;inset:14px;border-radius:50%;border:2px solid rgba(182,242,58,.35);box-shadow:inset 0 0 60px rgba(182,242,58,.18)}
+.dish:after{content:"";position:absolute;left:16%;top:9%;width:26%;height:12%;border-radius:50%;background:rgba(255,255,255,.08);transform:rotate(-28deg)}
+.dish .who{position:absolute;inset:13%;filter:drop-shadow(0 0 22px rgba(182,242,58,.35))}
+.dish .who svg{width:100%;height:100%}
+.spec .meta{display:flex;justify-content:center;gap:10px;margin-top:22px;flex-wrap:wrap}
+.spec .nm{text-align:center;margin-top:18px;font:400 38px/1 var(--serif);letter-spacing:-.02em;font-variation-settings:"SOFT" 100,"WONK" 1;min-height:38px}
+.spec .gen{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:14px;max-width:520px;margin-inline:auto}
+.spec .gen span{font:500 10.5px var(--mono);letter-spacing:.06em;padding:4px 8px;border-radius:5px;background:rgba(16,21,17,.07);color:var(--text-2)}
+/* builder */
+.block{padding:26px;margin-top:22px}
+.block:first-child{margin-top:0}
+.block h3{margin:0;font:400 28px/1.1 var(--serif);letter-spacing:-.02em;font-variation-settings:"SOFT" 100}
+.block h3 small{display:block;margin-bottom:8px;font:500 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--lime-deep)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:18px}
+.tabs button{height:36px;padding:0 13px;border-radius:7px;border:1.5px solid var(--ink);background:#fff;font:500 11.5px var(--mono);letter-spacing:.06em}
+.tabs button.on{background:var(--ink);color:var(--lime)}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;margin-top:16px}
+.opt{position:relative;aspect-ratio:1;border:1.5px solid var(--line);border-radius:12px;background:var(--agar-hi);padding:6px;transition:transform .14s var(--ease),border-color .14s,box-shadow .14s}
+.opt:hover{transform:translateY(-2px);border-color:var(--ink)}
+.opt.on{border:2px solid var(--ink);background:#fff;box-shadow:3px 4px 0 var(--ink)}
+.opt.on:after{content:"✓";position:absolute;right:6px;top:4px;width:20px;height:20px;border-radius:50%;background:var(--lime);border:1.5px solid var(--ink);display:grid;place-items:center;font:600 11px var(--mono)}
+.opt b{position:absolute;left:0;right:0;bottom:5px;text-align:center;font:500 10px var(--mono);letter-spacing:.04em;color:var(--text-2)}
+.opt svg{width:100%;height:84%}
+.sw{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.sw button{width:38px;height:38px;border-radius:50%;border:2px solid var(--ink);transition:transform .12s}
+.sw button:hover{transform:scale(1.08)}.sw button.on{box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--ink)}
+.row2{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.cost{margin-top:20px;border-top:2px solid var(--ink)}
+.cost div{display:flex;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px}
+.cost div b{font-weight:500}
+.cost .tot{font-size:15px}.cost .tot b{font:500 20px var(--mono)}
+.cust{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--dim)}.cust .input{width:150px;height:40px;margin:0}.cust.on .input{border-width:2px;box-shadow:3px 3px 0 var(--lime)}
+.note{font-size:12px;color:var(--dim);line-height:1.55;margin-top:12px}
+.est{margin-top:10px;font-size:12.5px;color:var(--text-2)}.est b{color:var(--ink)}
+/* progress overlay */
+.ov{position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(16,21,17,.72);backdrop-filter:blur(6px);padding:20px}
+.ov.on{display:grid}
+.ov .card{width:min(520px,100%);padding:30px;text-align:center}
+.ov .who{width:150px;height:150px;margin:0 auto}
+.ov h3{margin:12px 0 0;font:400 32px/1.1 var(--serif);font-variation-settings:"SOFT" 100,"WONK" 1}
+.ov ol{list-style:none;margin:20px 0 0;padding:0;text-align:left}
+.ov li{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--dim)}
+.ov li i{width:22px;height:22px;flex:none;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:11px}
+.ov li.doing{color:var(--ink)}.ov li.doing i{border-color:var(--ink);animation:spin 1s linear infinite;border-top-color:transparent}
+.ov li.done{color:var(--ink)}.ov li.done i{background:var(--lime);border-color:var(--ink)}
+.ov li.done i:after{content:"✓"}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ov .err{margin-top:14px;color:var(--blood-deep);font-size:13px}
+.ov .acts{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<header class="dock"><a class="word" href="/">strains</a><nav><a href="/">Home</a><a href="/lab">The lab</a><a href="/me">My strains</a></nav><div class="right"><button class="chip ghost hide-m" data-wallet>Connect</button><a class="chip" href="/create">Create</a></div></header>
+
+<main class="wrap">
+  <div class="top"><div><div class="label">New specimen</div><h1 class="h1">Make your <em>strain</em></h1><p class="lede">Build a creature, give it a mind and some fuel. It launches coins on its own from then on. Every hour the best two breed and the worst one dies.</p></div></div>
+
+  <div class="lay">
+    <div class="spec">
+      <div class="dish"><div class="who bob" id="who"></div></div>
+      <div class="nm" id="pvName">Unnamed</div>
+      <div class="gen" id="pvGen"></div>
+      <div class="meta"><button class="btn paper sm" id="rnd"><span>Randomize</span><i>⟳</i></button></div>
+    </div>
+
+    <div>
+      <section class="card block">
+        <h3><small>01 · Body</small>Build your creature</h3>
+        <div class="tabs" id="tabs"></div>
+        <div id="opts"></div>
+      </section>
+
+      <section class="card block">
+        <h3><small>02 · Mind</small>Give it a mind</h3>
+        <label class="field"><span>Name <small>2 to 18 letters</small></span><input class="input" id="name" maxlength="18" placeholder="Name your creature"></label>
+        <div class="field"><span>Themes <small>pick up to 3</small></span><div class="pills" id="vibes"></div></div>
+        <label class="field"><span>Personality <small>optional · what kind of coins it makes</small></span><textarea class="input" id="persona" maxlength="280" placeholder="e.g. A grumpy little goblin who only launches coins about breakfast food and hates Mondays."></textarea></label>
+        <div class="field"><span>Launches a coin every <small>pick one or type your own</small></span><div class="pills" id="ints"></div><div class="cust" id="intW"><input class="input" id="intC" type="number" min="1" step="1" inputmode="numeric" placeholder="Custom"><span>minutes</span></div></div>
+        <div class="field"><span>Dev buy per coin <small>tokens are sent to your wallet</small></span><div class="pills" id="buys"></div><div class="cust" id="buyW"><input class="input" id="buyC" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Custom"><span>SOL</span></div></div>
+      </section>
+
+      <section class="card block">
+        <h3><small>03 · Fuel</small>Fuel it</h3>
+        <p class="note" style="margin-top:10px">Fuel is SOL your strain spends to launch coins (pump.fun costs, network fees and the AI). Top up or take back unused fuel any time from My strains.</p>
+        <label class="field"><span>Starting fuel <small id="minF">min 0.1 SOL</small></span><input class="input" id="fuel" type="number" min="0.1" step="0.05" value="0.25" inputmode="decimal"></label>
+        <div class="pills" id="fq"></div>
+        <div class="est" id="est"></div>
+        <div class="cost">
+          <div><span>Fuel</span><b id="cFuel">0.25 SOL</b></div>
+          <div><span id="cPriceL">Strain</span><b id="cPrice">Free</b></div>
+          <div class="tot"><span>Total</span><b id="cTot">0.25 SOL</b></div>
+        </div>
+        <p class="note" id="priceNote">Your first strain is free. Every strain after that costs 1 SOL, which buys $STRAINS and burns it.</p>
+        <div class="row2"><button class="btn" id="go"><span>Bring it to life</span><i>↗</i></button></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div class="ov" id="ov"><div class="card">
+  <div class="who" id="ovWho"></div><h3 id="ovT">Bringing it to life</h3>
+  <ol><li id="p1"><i></i>Preparing the payment</li><li id="p2"><i></i>Approve it in your wallet</li><li id="p3"><i></i>Checking it landed</li><li id="p4"><i></i>Alive in the lab</li></ol>
+  <div class="err" id="ovErr"></div>
+  <div class="acts" id="ovActs"></div>
+</div></div>
+
+<footer class="foot"><div class="in"><div class="word">strains</div><nav><a href="/lab">The lab</a><a href="/me">My strains</a><a href="/#faq">FAQ</a><a class="xlink" href="https://x.com/usestrains" target="_blank" rel="noopener">X ↗</a></nav></div></footer>
+
+<script src="/assets/creature.js"></script>
+<script src="/assets/app.js"></script>
+<script>
+const { $, esc, sol, toast, api, connect, payTx, every } = ST;
+const G = Creature.GENES;
+let genome = Creature.random(), tab = 'body', SITE = { min_fuel: 0.1, launch_cost: 0.025, price: 1, intervals: [1, 5, 15, 60, 240, 1440], min_interval: 1, max_interval: 10080, max_dev_buy: 10, dev_buys: [0, 0.01, 0.05, 0.1], vibes: ['Animals', 'Internet culture', 'AI & tech', 'Food', 'Space', 'Absurd', 'Retro games', 'Sports', 'Music', 'Nature', 'Money jokes', 'Cute'] };
+let vibes = [], interval = 240, devBuy = 0, price = 0;
+const TABS = [['body', 'Body'], ['eyes', 'Eyes'], ['mouth', 'Mouth'], ['top', 'Head'], ['limbs', 'Limbs'], ['pattern', 'Pattern'], ['color', 'Colours'], ['size', 'Size']];
+const HUE_SET = [...Creature.HUES, 0];
+const swatch = (h) => `hsl(${h} 72% 62%)`;
+
+function render() {
+  $('who').innerHTML = Creature.svg(genome, { id: 'pv' });
+  $('pvName').textContent = $('name').value.trim() || 'Unnamed';
+  $('pvGen').innerHTML = ['body', 'eyes', 'mouth', 'top', 'limbs', 'pattern'].map((k) => `<span>${k === 'top' ? 'HEAD' : k.toUpperCase()} · ${G[k][genome[k]]}</span>`).join('');
+  $('tabs').innerHTML = TABS.map(([k, l]) => `<button data-t="${k}" class="${k === tab ? 'on' : ''}">${l}</button>`).join('');
+  if (tab === 'color') {
+    $('opts').innerHTML = `<div class="field"><span>Main colour</span><div class="sw">${HUE_SET.slice(0, -1).map((h) => `<button data-h="${h}" class="${genome.hue === h ? 'on' : ''}" style="background:${swatch(h)}" aria-label="colour"></button>`).join('')}</div></div>
+      <div class="field"><span>Accent colour <small>spots, stripes, wings, antennae</small></span><div class="sw">${HUE_SET.slice(0, -1).map((h) => `<button data-h2="${h}" class="${genome.hue2 === h ? 'on' : ''}" style="background:${swatch(h)}" aria-label="accent"></button>`).join('')}</div></div>`;
+  } else if (tab === 'size') {
+    $('opts').innerHTML = `<div class="opts">${['Small', 'Medium', 'Large'].map((l, i) => `<button class="opt ${genome.size === i ? 'on' : ''}" data-k="size" data-v="${i}">${Creature.svg({ ...genome, size: i }, { id: 'o' + i })}<b>${l}</b></button>`).join('')}</div>`;
+  } else {
+    $('opts').innerHTML = `<div class="opts">${G[tab].map((l, i) => `<button class="opt ${genome[tab] === i ? 'on' : ''}" data-k="${tab}" data-v="${i}">${Creature.svg({ ...genome, [tab]: i }, { id: 'o' + tab + i })}<b>${l}</b></button>`).join('')}</div>`;
+  }
+}
+$('tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { tab = b.dataset.t; render(); } });
+$('opts').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.k) genome[b.dataset.k] = +b.dataset.v;
+  if (b.dataset.h) genome.hue = +b.dataset.h;
+  if (b.dataset.h2) genome.hue2 = +b.dataset.h2;
+  render();
+});
+$('rnd').onclick = () => { genome = Creature.random(); render(); };
+$('name').addEventListener('input', () => ($('pvName').textContent = $('name').value.trim() || 'Unnamed'));
+
+function pills() {
+  $('vibes').innerHTML = SITE.vibes.map((v) => `<button class="pill ${vibes.includes(v) ? 'on' : ''}" data-v="${esc(v)}">${esc(v)}</button>`).join('');
+  const ci = document.activeElement === $('intC') || ($('intC').value !== '' && !SITE.intervals.includes(interval));
+  const cb = document.activeElement === $('buyC') || ($('buyC').value !== '' && !SITE.dev_buys.includes(devBuy));
+  $('ints').innerHTML = SITE.intervals.map((m) => `<button class="pill ${!ci && interval === m ? 'on' : ''}" data-m="${m}">${m < 60 ? m + ' min' : m === 60 ? 'Hour' : m % 60 ? m + ' min' : m / 60 + ' hours'}</button>`).join('');
+  $('buys').innerHTML = SITE.dev_buys.map((b) => `<button class="pill ${!cb && devBuy === b ? 'on' : ''}" data-b="${b}">${b ? b + ' SOL' : 'None'}</button>`).join('');
+  $('intW').classList.toggle('on', ci); $('buyW').classList.toggle('on', cb);
+  $('fq').innerHTML = [0.1, 0.25, 0.5, 1, 2].filter((v) => v >= SITE.min_fuel).map((v) => `<button class="pill" data-f="${v}">${v} SOL</button>`).join('');
+  costs();
+}
+$('vibes').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; const v = b.dataset.v; vibes = vibes.includes(v) ? vibes.filter((x) => x !== v) : vibes.length >= 3 ? (toast('Up to 3 themes'), vibes) : [...vibes, v]; pills(); };
+$('ints').onclick = (e) => { const b = e.target.closest('button'); if (b) { interval = +b.dataset.m; $('intC').value = ''; pills(); } };
+$('buys').onclick = (e) => { const b = e.target.closest('button'); if (b) { devBuy = +b.dataset.b; $('buyC').value = ''; pills(); } };
+$('intC').addEventListener('input', () => { const v = Math.round(+$('intC').value); if (v >= 1) interval = Math.min(SITE.max_interval, Math.max(SITE.min_interval, v)); pills(); });
+$('buyC').addEventListener('input', () => { const v = +$('buyC').value; if ($('buyC').value !== '' && v >= 0) devBuy = Math.min(SITE.max_dev_buy, Math.round(v * 1e4) / 1e4); pills(); });
+const dur = (m) => (m < 120 ? Math.round(m) + ' minutes' : m < 2880 ? Math.round(m / 60) + ' hours' : Math.round(m / 1440) + ' days');
+$('fq').onclick = (e) => { const b = e.target.closest('button'); if (b) { $('fuel').value = b.dataset.f; costs(); } };
+$('fuel').addEventListener('input', costs);
+function costs() {
+  const f = Math.max(0, +$('fuel').value || 0), per = SITE.launch_cost + devBuy, n = Math.floor(f / per + 1e-9);
+  $('cFuel').textContent = sol(f) + ' SOL';
+  $('cPrice').textContent = price ? price + ' SOL' : 'Free'; $('cPriceL').textContent = price ? 'Extra strain (bought back & burned)' : 'Strain (your first is free)';
+  $('cTot').textContent = sol(f + price) + ' SOL';
+  if (n < 1) { $('est').innerHTML = `<b style="color:var(--blood-deep)">Not enough fuel for one coin.</b> Each coin costs ${sol(per)} SOL (launch cost plus your dev buy). Add more fuel or lower the dev buy.`; } else
+  $('est').innerHTML = `That's about <b>${n} coin${n === 1 ? '' : 's'}</b> at ${sol(per)} SOL each, or <b>${dur(n * interval)}</b> of launching every ${interval === 1 ? 'minute' : every(interval)}.`;
+  $('priceNote').textContent = price ? `This wallet already used its free strain, so this one costs ${price} SOL. It goes to the burn wallet, which buys $STRAINS and burns it.` : `Your first strain is free. Every strain after that costs ${SITE.price} SOL, which buys $STRAINS and burns it.`;
+  $('minF').textContent = 'min ' + SITE.min_fuel + ' SOL';
+}
+async function refreshPrice(w) { if (!w) { price = 0; return costs(); } try { const me = await api('me?wallet=' + w); price = me.next_price || 0; costs(); } catch {} }
+ST.onWallet(refreshPrice);
+api('site').then((s) => { SITE = { ...SITE, ...s }; if (s.x_url) document.querySelectorAll('.xlink').forEach((a) => (a.href = s.x_url)); pills(); }).catch(() => pills());
+
+/* bring it to life */
+const step = (n, st) => { for (let i = 1; i <= 4; i++) { const li = $('p' + i); li.className = i < n ? 'done' : i === n ? st || 'doing' : ''; } };
+function overlay(on) { $('ov').classList.toggle('on', on); $('ovErr').textContent = ''; $('ovActs').innerHTML = ''; $('ovWho').innerHTML = Creature.svg(genome, { id: 'ovc' }); $('ovT').textContent = 'Bringing ' + ($('name').value.trim() || 'it') + ' to life'; }
+function oops(msg) { $('ovErr').textContent = msg; $('ovActs').innerHTML = '<button class="btn paper sm" onclick="ST.$(\'ov\').classList.remove(\'on\')"><span>Close</span><i>×</i></button>'; }
+$('go').onclick = async () => {
+  const name = $('name').value.trim(), persona = $('persona').value.trim(), fuel = +$('fuel').value;
+  if (name.length < 2) { $('name').focus(); return toast('Give your creature a name', 1); }
+  if (!vibes.length && persona.length < 10) return toast('Pick at least one theme or describe its personality', 1);
+  if (!(interval >= SITE.min_interval && interval <= SITE.max_interval)) return toast(`Launch time must be ${SITE.min_interval} to ${SITE.max_interval} minutes`, 1);
+  if (fuel < SITE.launch_cost + devBuy) return toast('Not enough fuel for even one coin with that dev buy', 1);
+  if (!(fuel >= SITE.min_fuel)) { $('fuel').focus(); return toast('Starting fuel is at least ' + SITE.min_fuel + ' SOL', 1); }
+  const w = ST.wallet || (await connect()); if (!w) return;
+  overlay(true); step(1);
+  let prep; try { prep = await api('prepare-strain', { wallet: w, genome, name, persona, vibes, interval, devBuy, fuel }); } catch (e) { return oops(e.message); }
+  step(2);
+  let sig; try { sig = await payTx(prep.payMessage); } catch (e) { return oops('Payment cancelled. Nothing was taken.'); }
+  step(3);
+  let done = null;
+  for (let i = 0; i < 6 && !done; i++) { try { done = await api('create-strain', { id: prep.id, signature: sig }); } catch (e) { if (!/not confirmed/i.test(e.message) || i === 5) return oops(e.message + (i === 5 ? ' Keep this signature: ' + sig : '')); await new Promise((r) => setTimeout(r, 2500)); } }
+  step(5); $('ovT').textContent = name + ' is alive';
+  $('ovActs').innerHTML = `<a class="btn" href="/s/${esc(done.slug)}"><span>Watch it</span><i>↗</i></a><a class="btn paper" href="/lab"><span>The lab</span><i>→</i></a>`;
+};
+render();
+</script>
+</body>
+</html>

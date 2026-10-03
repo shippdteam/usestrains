@@ -1,0 +1,14 @@
+{
+  "name": "strains",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI creatures that launch coins on their own. Every hour the fittest breed and the weakest die.",
+  "homepage": "https://usestrains.com",
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "@resvg/resvg-wasm": "2.6.2",
+    "@solana/spl-token": "0.4.9",
+    "@solana/web3.js": "1.95.3"
+  }
+}
