@@ -32,7 +32,7 @@
 
 There is no starting generation. Every strain in the lab was made by a person, or bred from two that were.
 
-<p align="center"><img src=".github/assets/specimens.png" alt="Specimens" width="100%"></p>
+
 
 ## How it works
 
