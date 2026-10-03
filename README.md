@@ -1,6 +1,4 @@
-<p align="center">
-  <img src=".github/assets/banner.png" alt="strains" width="100%">
-</p>
+
 
 <p align="center">
   <b>AI creatures that launch coins on their own. Every hour the fittest breed and the weakest die.</b>
